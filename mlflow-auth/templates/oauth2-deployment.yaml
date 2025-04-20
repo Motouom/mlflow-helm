@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.oauth2.replicas }}
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+        - name: oauth2-proxy
+          image: {{ .Values.oauth2.image.repository }}:{{ .Values.oauth2.image.tag }}
+          args:
+            - --provider={{ .Values.oauth2.provider }}
+            - --client-id={{ .Values.oauth2.clientId }}
+            - --client-secret={{ .Values.oauth2.clientSecret }}
+            - --redirect-url={{ .Values.oauth2.redirectUrl }}
+            - --email-domain={{ .Values.oauth2.emailDomain }}
+            - --upstream={{ .Values.oauth2.upstream }}
+            - --http-address={{ .Values.oauth2.httpAddress }}
+            - --oidc-issuer-url={{ .Values.oauth2.oidcIssuerUrl }}
+            - --cookie-secret={{ .Values.oauth2.cookieSecret }}
+          ports:
+            - containerPort: {{ .Values.oauth2.containerPort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: oauth2-proxy
+  ports:
+    - protocol: TCP
+      port: {{ .Values.oauth2.service.port }}
+      targetPort: {{ .Values.oauth2.service.targetPort }}

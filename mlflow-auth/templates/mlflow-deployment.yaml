@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.mlflow.replicas }}
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+        - name: mlflow
+          image: {{ .Values.mlflow.image.repository }}:{{ .Values.mlflow.image.tag }}
+          args:
+            - "mlflow"
+            - "server"
+            - "--backend-store-uri"
+            - {{ .Values.mlflow.backendStoreUri }}
+            - "--default-artifact-root"
+            - {{ .Values.mlflow.artifactRoot }}
+            - "--host"
+            - "0.0.0.0"
+          ports:
+            - containerPort: {{ .Values.mlflow.containerPort }}
+          volumeMounts:
+            - mountPath: /mlflow
+              name: mlflow-data
+      volumes:
+        - name: mlflow-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow-service
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: mlflow
+  ports:
+    - protocol: TCP
+      port: {{ .Values.mlflow.service.port }}
+      targetPort: {{ .Values.mlflow.service.targetPort }}
+      nodePort: {{ .Values.mlflow.service.nodePort }}
+  type: {{ .Values.mlflow.service.type }}
