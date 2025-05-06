@@ -3,3 +3,8 @@ name: mlflow-auth
 description: A Helm chart for deploying MLflow with OAuth2 Proxy
 version: 0.1.0
 appVersion: "2.12.1"
+dependencies:
+  - name: postgresql
+    version: 11.9.13
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled

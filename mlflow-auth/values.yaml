@@ -5,7 +5,8 @@ mlflow:
   image:
     repository: ghcr.io/mlflow/mlflow
     tag: v2.12.1
-  backendStoreUri: sqlite:///mlflow.db
+  # Switch to PostgreSQL backend
+  backendStoreUri: postgresql://mlflow:mlflow-password@mlflow-auth-postgresql:5443/mlflow
   artifactRoot: /mlflow/artifacts
   containerPort: 5000
   service:
@@ -32,3 +33,29 @@ oauth2:
   service:
     port: 4180
     targetPort: 4180
+
+# PostgreSQL database configuration
+postgresql:
+  enabled: true
+  auth:
+    username: mlflow
+    password: mlflow-password
+    database: mlflow
+    # Adding postgres password to avoid the upgrade error
+    postgresPassword: postgres-admin-password
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+    containerPorts:
+      postgresql: 5443
+    service:
+      ports:
+        postgresql: 5443
+  metrics:
+    enabled: false
+  containerPorts:
+    postgresql: 5443
+  service:
+    ports:
+      postgresql: 5443

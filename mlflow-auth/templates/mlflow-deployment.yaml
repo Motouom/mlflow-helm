@@ -16,17 +16,29 @@ spec:
       containers:
         - name: mlflow
           image: {{ .Values.mlflow.image.repository }}:{{ .Values.mlflow.image.tag }}
+          command: ["/bin/sh", "-c"]
           args:
-            - "mlflow"
-            - "server"
-            - "--backend-store-uri"
-            - {{ .Values.mlflow.backendStoreUri }}
-            - "--default-artifact-root"
-            - {{ .Values.mlflow.artifactRoot }}
-            - "--host"
-            - "0.0.0.0"
+            - |
+              pip install psycopg2-binary && \
+              mlflow server \
+              --backend-store-uri {{ .Values.mlflow.backendStoreUri | quote }} \
+              --default-artifact-root {{ .Values.mlflow.artifactRoot }} \
+              --host 0.0.0.0
           ports:
             - containerPort: {{ .Values.mlflow.containerPort }}
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: {{ .Values.mlflow.backendStoreUri | quote }}
+            - name: POSTGRES_HOST
+              value: "{{ .Release.Name }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5443"
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.auth.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgresql.auth.password | quote }}
           volumeMounts:
             - mountPath: /mlflow
               name: mlflow-data
